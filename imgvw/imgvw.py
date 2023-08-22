@@ -67,8 +67,8 @@ class WorkingImages:
 def click_event(event, x, y, flags, params):
     if event == cv2.EVENT_LBUTTONDBLCLK:
         cur_image = params.cur_image()
-        cur_image.undo_stack.append(cur_image.image.copy())
         cur_antt_class = cur_image.cur_antt_class
+        cur_image.undo_stack.append((cur_image.image.copy(), cur_antt_class))
         cv2.circle(cur_image.image, (x, y), 5, colors[cur_antt_class], -1)
         cur_image.class_points.setdefault(cur_antt_class, []).append((x, y))
 
@@ -93,7 +93,8 @@ while True:
         break
     elif key == ord('u'):
         if cur_image.undo_stack:
-            cur_image.image = cur_image.undo_stack.pop()
+            cur_image.image, old_cur_antt_class = cur_image.undo_stack.pop()
+            cur_image.class_points[old_cur_antt_class].pop()
     elif key == ord('n'):
         images.next()
     elif key == ord('p'):
