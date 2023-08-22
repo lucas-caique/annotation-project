@@ -7,7 +7,7 @@ Essa feramenta escreve na tela informações no formato ```json``` para alimenta
 ## Uso:
 
 ```
-	python3 imgvw.py [directory]
+python3 imgvw.py [directory]
 ```
 
 - Carrega todas as imagens do diretório
