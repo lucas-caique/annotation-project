@@ -10,7 +10,6 @@ Essa feramenta escreve na tela informações no formato ```json``` para alimenta
 python3 imgvw.py [directory]
 ```
 
-- Carrega todas as imagens do diretório
 - ```left-double-click``` desenha ponto
 - ```1-9``` seleciona classes
 - ```n``` próxima imagem
