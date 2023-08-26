@@ -23,21 +23,24 @@ def get_panoramas_info(pts, n, api_key, year):
             # print(f"{p} found panoramas: {len(tmp)}")
 
             if len(tmp) != 0:
-                if tmp[0].date is None:
-                    tmp[0].date = get_panorama_meta(tmp[0].pano_id, api_key).date
-                # Define ano mínimo do panorama
-                if int(tmp[0].date.split('-')[0]) >= year:
-                    if tmp[0].pano_id not in panos.keys():
-                        panos[tmp[0].pano_id] = tmp[0]
-                        # print(f"pano_id: {tmp[0].pano_id} added (found {i} of {n})")
-                        i += 1
-                        pbar.update(1)
+                for pano in tmp:
+                    if pano.date is None:
+                        pano.date = get_panorama_meta(tmp[0].pano_id,
+                                                      api_key).date
+                    # Define ano mínimo do panorama
+                    if int(pano.date.split('-')[0]) >= year:
+                        if pano.pano_id not in panos.keys():
+                            # print(f"pano_id: {pano.pano_id} added (found {i} of {n})")
+                            panos[pano.pano_id] = pano
+                            i += 1
+                            pbar.update(1)
+                            break
     return panos
 
 
 def save_metadata(fname, meta):
-    f = open(fname, 'a', newline='')
-    if not os.path.isfile(fname):
+    if os.path.isfile(fname) is False:
+        f = open(fname, 'w', newline='')
         csv.writer(f).writerow(['pano_id',
                                 'lat',
                                 'lon',
@@ -45,7 +48,7 @@ def save_metadata(fname, meta):
                                 'pitch',
                                 'roll',
                                 'date'])
-
+    f = open(fname, 'a', newline='')
     l = list(meta.values())
     for pano in l:
         data = []
@@ -66,7 +69,9 @@ def download_images(meta, path, quality):
         # o motivo dessas operações: https://medium.com/@nocomputer/creating-point-clouds-with-google-street-view-185faad9d4ee
         actual_w = 2**quality * 416 
         actual_h = 2**(quality - 1) * 416 
-        image = image.crop((0, 0, actual_w, actual_h))
+
+        image = image.crop((0, 0, actual_w, actual_h)).resize((512 * 2**quality,
+                                                               512 * 2**(quality - 1)))
         image.save(path + id + ".jpg", "jpeg")
 
 
@@ -75,7 +80,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--api_key", help="your GOOGLE API key", required=True)
     parser.add_argument("-r", metavar="coord", type=float, nargs=4,
                         help="defines the boundery rectangle for search",
-                        default=[-30.001798, -51.207466, -30.088726, -51.184806],
+                        default=[-30.001798, -51.207466, -30.088726, -51.184806], # Região Metropolitana de Porto Alegre
                         required=False)
     parser.add_argument("-d", metavar="DIRECTORY",
                         help="directory to save images",

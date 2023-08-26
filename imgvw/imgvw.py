@@ -65,11 +65,12 @@ class WorkingImages:
 
 
 def click_event(event, x, y, flags, params):
+    radius = 15
     if event == cv2.EVENT_LBUTTONDBLCLK:
         cur_image = params.cur_image()
         cur_antt_class = cur_image.cur_antt_class
         cur_image.undo_stack.append((cur_image.image.copy(), cur_antt_class))
-        cv2.circle(cur_image.image, (x, y), 5, colors[cur_antt_class], -1)
+        cv2.circle(cur_image.image, (x, y), radius, colors[cur_antt_class], -1)
         cur_image.class_points.setdefault(cur_antt_class, []).append((x, y))
 
 
@@ -78,7 +79,7 @@ if len(sys.argv) != 2:
 
 images = WorkingImages()
 for i in os.listdir(sys.argv[1]):
-    if i.endswith('.jpg'):
+    if i.endswith('.jpg') or i.endswith('.png'):
         images.append(sys.argv[1], i)
 
 cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
