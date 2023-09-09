@@ -82,10 +82,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     images = WorkingImages()
+
     if os.path.isdir(args.p):
+        if (args.p[-1] != '/'):
+            args.p += '/'
         for i in os.listdir(args.p):
             if i.endswith('.jpg') or i.endswith('.png'):
-                images.append(args.d + "/" + i)
+                images.append(args.p + "/" + i)
     elif os.path.isfile(args.p):
         images.append(args.p)
 
