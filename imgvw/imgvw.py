@@ -76,21 +76,18 @@ def click_event(event, x, y, flags, imgs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Annotate Images")
 
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-d", metavar="DIRECTORY",
-                        help="directory to load images", default = ".")
-    group.add_argument("-p", metavar="path/to/image")
+    parser.add_argument("-p", help="path/to/image", type=str, required=True)
+    parser.add_argument("-s", help="save modified images",
+                        action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
 
     images = WorkingImages()
-    if args.p is not None:
-        print("Loading " + args.p)
-        images.append(args.p)
-        print(images.list_imgs[0].name)
-    elif args.d is not None:
-        for i in os.listdir(args.d):
+    if os.path.isdir(args.p):
+        for i in os.listdir(args.p):
             if i.endswith('.jpg') or i.endswith('.png'):
                 images.append(args.d + "/" + i)
+    elif os.path.isfile(args.p):
+        images.append(args.p)
 
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Image', click_event, images)
@@ -101,6 +98,10 @@ if __name__ == "__main__":
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
+            if (args.s):
+                for img in images.list_imgs:
+                    path, ext = os.path.splitext(img.path)
+                    cv2.imwrite(path + "_annoted" + ext, img.image)
             break
         elif key == ord('u'):
             if cur_image.undo_stack:
