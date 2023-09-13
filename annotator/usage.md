@@ -4,11 +4,13 @@ As seguintes intruções foram adaptadas do [repositório oficial](https://githu
 
 
 1. Numa pasta qualquer crie um ambiente virtual
+
 ```
 python3 -m venv venv
 ```
 
 2. Clone e instale requisitos do FastSAM
+
 ```
 git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
 cd FastSAM
@@ -16,11 +18,11 @@ pip install -r requirements.txt
 pip install git+https://github.com/openai/CLIP.git
 ```
 
-3. Saia da pasta e adicione fastsam às bibliotecas do ambiente virtual
+3. Adicione fastsam às bibliotecas do ambiente virtual
+
 ```
-cd ..
 pip install git+https://github.com/CASIA-IVA-Lab/FastSAM.git
-cp -r fastsam venv/lib/python3.11/site-packages/
+cp -r fastsam ../venv/lib/python3.11/site-packages/
 ```
 
 
