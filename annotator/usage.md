@@ -1,6 +1,6 @@
 #### Instalando FastSAM
 
-As seguintes intruções foram adaptadas do [repositório oficial].(https://github.com/CASIA-IVA-Lab/FastSAM.git) Eles recomendam o conda pra gerenciar projeto mas não consegui rodar nada fora da pasta do ```FastSAM/```. Seguintes passos resolveram isso.
+As seguintes intruções foram adaptadas do [repositório oficial](https://github.com/CASIA-IVA-Lab/FastSAM.git) Eles recomendam o conda pra gerenciar projeto mas não consegui rodar nada fora da pasta do ```FastSAM/```. Seguintes passos resolveram isso.
 
 
 1. Numa pasta qualquer crie um ambiente virtual
