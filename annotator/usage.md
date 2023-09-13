@@ -9,7 +9,7 @@ cd FastSAM
 pip install -r requirements.txt
 pip install git+https://github.com/openai/CLIP.git
 pip install git+https://github.com/CASIA-IVA-Lab/FastSAM.git
-cp -r FastSAM/fastsam venv/lib/python3.11/site-packages/
+cp -r fastsam venv/lib/python3.11/site-packages/
 ```
 
 Após, baixe um dos [modelos](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing). De preferência, salve em ```./weights/``` (script buscará nessa pasta por padrão).
