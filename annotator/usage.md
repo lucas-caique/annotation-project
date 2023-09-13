@@ -3,11 +3,11 @@
 As seguintes intruções estão presentes no [repositório oficial](https://github.com/CASIA-IVA-Lab/FastSAM.git)
 
 ```
+python3 -m venv venv
 git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
 cd FastSAM
 pip install -r requirements.txt
 pip install git+https://github.com/openai/CLIP.git
-python3 -m venv venv
 pip install git+https://github.com/CASIA-IVA-Lab/FastSAM.git
 cp -r FastSAM/fastsam venv/lib/python3.11/site-packages/
 ```
