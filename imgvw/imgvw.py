@@ -2,7 +2,6 @@ import json
 import argparse
 import os.path
 import cv2
-import sys
 
 
 # color palette from: https://colorswall.com/palette/171300
@@ -116,7 +115,6 @@ if __name__ == "__main__":
             images.prev()
         elif ord('1') <= key and key <= ord('9'):
             cur_image.cur_antt_class = key - 49
-
 
     print(json.dumps(images.annotations()))
     cv2.destroyAllWindows()

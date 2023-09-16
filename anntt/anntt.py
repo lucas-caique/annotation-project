@@ -108,5 +108,4 @@ if __name__ == "__main__":
             ann = prompt_process.point_prompt(points=p,
                                               pointlabel=[1]*len(p))
             prompt_process.plot(annotations=ann,
-                                output_path=output_path + "_overlay.png",
-                                )
+                                output_path=output_path + "_overlay.png")

@@ -61,10 +61,10 @@ def save_metadata(fname, meta):
 def download_images(meta, path, quality):
     print("\nDownloading to: " + path)
     for id in meta:
-        if os.path.isfile(path+id+".jpg"):
-            print(id+".jpg ja existe")
+        if os.path.isfile(path+id+".png"):
+            print(id+".png ja existe")
             break
-        print("downloading: " + id + ".jpg")
+        print("downloading: " + id + ".png")
         image = get_panorama(id, quality)
         # o motivo dessas operações: https://medium.com/@nocomputer/creating-point-clouds-with-google-street-view-185faad9d4ee
         actual_w = 2**quality * 416 
@@ -72,7 +72,7 @@ def download_images(meta, path, quality):
 
         image = image.crop((0, 0, actual_w, actual_h)).resize((512 * 2**quality,
                                                                512 * 2**(quality - 1)))
-        image.save(path + id + ".jpg", "jpeg")
+        image.save(path + id + ".png", "png")
 
 
 if __name__ == "__main__":
