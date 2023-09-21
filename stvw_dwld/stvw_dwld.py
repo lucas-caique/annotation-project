@@ -63,7 +63,7 @@ def download_images(meta, path, quality):
     for id in meta:
         if os.path.isfile(path+id+".png"):
             print(id+".png ja existe")
-            break
+            continue
         print("downloading: " + id + ".png")
         image = get_panorama(id, quality)
         # o motivo dessas operações: https://medium.com/@nocomputer/creating-point-clouds-with-google-street-view-185faad9d4ee
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--api_key", help="your GOOGLE API key", required=True)
     parser.add_argument("-r", metavar="coord", type=float, nargs=4,
                         help="defines the boundery rectangle for search",
-                        default=[-30.001798, -51.207466, -30.088726, -51.184806], # Região Metropolitana de Porto Alegre
-                        required=False)
+                        # Região Metropolitana de Porto Alegre
+                        default=[-30.001798, -51.207466, -30.088726, -51.184806])
     parser.add_argument("-d", metavar="DIRECTORY",
                         help="directory to save images",
                         default=".")
@@ -94,16 +94,29 @@ if __name__ == "__main__":
     parser.add_argument("-y", "--year",
                         help="only allows panoramas taken in \'year\' or later",
                         type=int, default=0)
+    parser.add_argument("-m", "--metadata",
+                        help="download from metadata file",
+                        type=str)
 
     args = parser.parse_args()
-    path = args.d
-    if os.path.isdir(path) is False:
-        os.mkdir(path)
 
-    if path[-1] != '/':
-        path += '/'
+    if args.metadata is not None:
+        meta = {}
+        ids = []
+        fn = csv.DictReader(open(args.metadata))
+        for row in fn:
+            pano_id = row['pano_id']
+            meta[pano_id] = get_panorama_meta(pano_id=pano_id,
+                                              api_key=args.api_key)
+        download_images(meta,
+                        os.path.dirname(args.metadata) + '/',
+                        args.quality)
+    else:
+        path = os.path.join(args.d, "")
+        if os.path.isdir(path) is False:
+            os.mkdir(path)
 
-    print(args.r)
-    meta = get_panoramas_info(args.r, args.n, args.api_key, args.year)
-    save_metadata(path + "metadata", meta)
-    download_images(meta, path, args.quality)
+        print(args.r)
+        meta = get_panoramas_info(args.r, args.n, args.api_key, args.year)
+        save_metadata(path + "metadata", meta)
+        download_images(meta, path, args.quality)
