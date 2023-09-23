@@ -17,7 +17,7 @@ colors = [(0,   0,     0),
 imgs = []
 if os.path.isdir(sys.argv[1]):
     for fp in os.listdir(sys.argv[1]):
-        if fp.endswith('.png') or fp.endswith('.jpg'):
+        if fp.endswith('_masks.png'):
             imgs.append(os.path.join(sys.argv[1], fp))
 elif os.path.isfile(sys.argv[1]):
     imgs.append(sys.argv[1])

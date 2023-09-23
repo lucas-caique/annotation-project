@@ -31,14 +31,18 @@ if __name__ == "__main__":
                         "--output",
                         type=str,
                         help="path to save image ",)
-    parser.add_argument("-p",
-                        "--points",
+    parser.add_argument("-a",
+                        "--annotation",
                         type=str,
                         help="path to the annotation file")
     parser.add_argument("--show_masks",
                         action="store_true",
                         help="show masks for each point",
                         default=False)
+    parser.add_argument("--imgsz",
+                        type=int,
+                        help="size of the image",
+                        default=1024)
     parser.add_argument("--overlay",
                         action="store_true",
                         help="save overlay",
@@ -70,6 +74,7 @@ if __name__ == "__main__":
         everything_results = model(IMAGE_PATH,
                                    device=DEVICE,
                                    retina_masks=True,
+                                   imgsz=args.imgsz,
                                    conf=0.4,
                                    iou=0.9,)
         prompt_process = FastSAMPrompt(IMAGE_PATH,
@@ -101,6 +106,7 @@ if __name__ == "__main__":
                 for z in range(0, len(masks)):
                     if masks[z][i][j] != 0:
                         out[i][j] = masks[z][i][j]
+                        break
 
         cv2.imwrite(output_path + "_masks.png", out)
 
@@ -108,4 +114,7 @@ if __name__ == "__main__":
             ann = prompt_process.point_prompt(points=p,
                                               pointlabel=[1]*len(p))
             prompt_process.plot(annotations=ann,
+                                withContours=False,
+                                mask_random_color=False,
+                                better_quality=True,
                                 output_path=output_path + "_overlay.png")
