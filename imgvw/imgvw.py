@@ -18,9 +18,9 @@ colors = [(47, 52, 227),
 
 class Image:
     def __init__(self, path):
-        self.name = path.split('/')[-1]
+        self.name = os.path.basename(path)
         self.path = path
-        self.image = cv2.imread(self.path)
+        self.image = cv2.imread(self.path, cv2.IMREAD_UNCHANGED)
         self.undo_stack = []
         self.class_points = {}
         self.cur_antt_class = 0
@@ -63,11 +63,11 @@ class WorkingImages:
 
 
 def click_event(event, x, y, flags, imgs):
-    radius = 10
     if event == cv2.EVENT_LBUTTONDBLCLK:
         cur_image = imgs.cur_image()
         cur_antt_class = cur_image.cur_antt_class
         cur_image.undo_stack.append((cur_image.image.copy(), cur_antt_class))
+        radius = int(5 * (cur_image.image.shape[1] / 1024))
         cv2.circle(cur_image.image, (x, y), radius, colors[cur_antt_class], -1)
         cur_image.class_points.setdefault(cur_antt_class, []).append((x, y))
 
@@ -76,18 +76,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Annotate Images")
 
     parser.add_argument("-p", help="path/to/image", type=str, required=True)
-    parser.add_argument("-s", help="save modified images",
-                        action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
 
     images = WorkingImages()
 
     if os.path.isdir(args.p):
-        if (args.p[-1] != '/'):
-            args.p += '/'
         for i in os.listdir(args.p):
             if i.endswith('.jpg') or i.endswith('.png'):
-                images.append(args.p + "/" + i)
+                images.append(os.path.join(args.p, i))
     elif os.path.isfile(args.p):
         images.append(args.p)
 
@@ -100,15 +96,11 @@ if __name__ == "__main__":
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
-            if (args.s):
-                for img in images.list_imgs:
-                    path, ext = os.path.splitext(img.path)
-                    cv2.imwrite(path + "_annoted" + ext, img.image)
             break
         elif key == ord('u'):
             if cur_image.undo_stack:
-                cur_image.image, old_cur_antt_class = cur_image.undo_stack.pop()
-                cur_image.class_points[old_cur_antt_class].pop()
+                cur_image.image, old_antt_clss = cur_image.undo_stack.pop()
+                cur_image.class_points[old_antt_clss].pop()
         elif key == ord('n'):
             images.next()
         elif key == ord('p'):
