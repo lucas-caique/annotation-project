@@ -50,15 +50,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.output is None:
-        args.output = os.path.join(args.img_path, "output/")
+        args.output = os.path.join(args.img_path, "output")
         if os.path.isdir(args.output) is False:
             os.mkdir(args.output)
 
-    if args.points is None:
-        args.points = os.path.join(args.img_path, "ann")
+    if args.annotations is None:
+        args.annotations = os.path.join(args.img_path, "ann")
 
-    assert os.path.isfile(args.points) is True, "Annotation file invalid"
-    annotations = json.load(open(args.points))
+    assert os.path.isfile(args.annotations) is True, "Annotation file invalid"
+    annotations = json.load(open(args.annotations))
 
     model = FastSAM(args.model_path)
     DEVICE = 'cpu'
