@@ -54,11 +54,11 @@ if __name__ == "__main__":
         if os.path.isdir(args.output) is False:
             os.mkdir(args.output)
 
-    if args.annotations is None:
-        args.annotations = os.path.join(args.img_path, "ann")
+    if args.annotation is None:
+        args.annotation = os.path.join(args.img_path, "ann")
 
-    assert os.path.isfile(args.annotations) is True, "Annotation file invalid"
-    annotations = json.load(open(args.annotations))
+    assert os.path.isfile(args.annotation) is True, "Annotation file invalid"
+    annotations = json.load(open(args.annotation))
 
     model = FastSAM(args.model_path)
     DEVICE = 'cpu'
@@ -84,6 +84,7 @@ if __name__ == "__main__":
         masks = []
         p = []
         for clss in annotations[fn]:
+            count = 1
             for pts in annotations[fn][clss]:
                 p.append(pts)
                 print(f"{pts}: {clss}")
@@ -91,7 +92,10 @@ if __name__ == "__main__":
                                                   pointlabel=[1])
                 largestCC = getLargestCC(ann[0])
                 if largestCC is not None:
-                    masks.append((int(clss)+1)*largestCC)
+                    chn1 = largestCC.astype(np.uint8) * (int(clss) + 1)
+                    chn2 = largestCC.astype(np.uint8) * count
+                    masks.append(np.stack((chn1, chn2), axis=-1))
+                    count += 1
                     if args.show_masks:
                         plt.imshow(largestCC)
                         plt.show()
@@ -100,21 +104,23 @@ if __name__ == "__main__":
         n, e = os.path.splitext(fn)
         output_path = os.path.join(args.output, n)
 
-        out = np.zeros(masks[0].shape, dtype=np.uint8)
-        for i in range(0, out.shape[0]):
-            for j in range(0, out.shape[1]):
-                for z in range(0, len(masks)):
-                    if masks[z][i][j] != 0:
-                        out[i][j] = masks[z][i][j]
-                        break
+        if len(masks):
+            out = np.zeros(masks[0].shape, dtype=np.uint8)
+            for i in range(0, out.shape[0]):
+                for j in range(0, out.shape[1]):
+                    for z in range(0, len(masks)):
+                        if masks[z][i][j][0] != 0:
+                            out[i][j] = masks[z][i][j]
+                            break
 
-        cv2.imwrite(output_path + "_masks.png", out)
+                with open(output_path + '.npy', 'wb') as f:
+                    np.save(f, out)
 
-        if args.overlay is True:
-            ann = prompt_process.point_prompt(points=p,
-                                              pointlabel=[1]*len(p))
-            prompt_process.plot(annotations=ann,
-                                withContours=False,
-                                mask_random_color=False,
-                                better_quality=True,
-                                output_path=output_path + "_overlay.png")
+            if args.overlay is True:
+                ann = prompt_process.point_prompt(points=p,
+                                                  pointlabel=[1]*len(p))
+                prompt_process.plot(annotations=ann,
+                                    withContours=False,
+                                    mask_random_color=False,
+                                    better_quality=True,
+                                    output_path=output_path + '.png')

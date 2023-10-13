@@ -108,6 +108,7 @@ if __name__ == "__main__":
             pano_id = row['pano_id']
             meta[pano_id] = get_panorama_meta(pano_id=pano_id,
                                               api_key=args.api_key)
+            print(f"downloading {pano_id}")
         download_images(meta,
                         os.path.dirname(args.metadata) + '/',
                         args.quality)

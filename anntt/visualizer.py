@@ -1,6 +1,7 @@
 import cv2
 import os.path
 import sys
+import numpy as np
 
 
 colors = [(0,   0,     0),
@@ -25,12 +26,11 @@ elif os.path.isfile(sys.argv[1]):
 
 for fp in imgs:
     print(f"Processing: {fp}")
-    img = cv2.imread(fp, cv2.IMREAD_GRAYSCALE)
-    img2 = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
+    img = cv2.imread(fp, cv2.IMREAD_UNCHANGED)
+    img2 = np.zeros_like(img, dtype=np.uint8)
     for i in range(0, img.shape[0]):
         for j in range(0, img.shape[1]):
-            img2[i][j] = colors[img[i][j]]
+            img2[i][j] = colors[img[i][j][0]]
 
     fn, ext = os.path.splitext(fp.split('/')[-1])
     cv2.imwrite(os.path.join(os.path.dirname(fp), fn) + "_visualization" + ext,
