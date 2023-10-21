@@ -4,6 +4,7 @@ import os.path
 import csv
 import random
 import argparse
+import os.path
 
 
 def get_random_point(pts):
@@ -77,11 +78,13 @@ def download_images(meta, path, quality):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-k", "--api_key", help="your GOOGLE API key", required=True)
+    parser.add_argument("-k", "--api_key", help="your GOOGLE API key",
+                        required=True)
     parser.add_argument("-r", metavar="coord", type=float, nargs=4,
                         help="defines the boundery rectangle for search",
                         # Região Metropolitana de Porto Alegre
-                        default=[-30.001798, -51.207466, -30.088726, -51.184806])
+                        default=[-30.001798, -51.207466,  # top-left corner
+                                 -30.088726, -51.184806]) # bottom right
     parser.add_argument("-d", metavar="DIRECTORY",
                         help="directory to save images",
                         default=".")
@@ -104,11 +107,17 @@ if __name__ == "__main__":
         meta = {}
         ids = []
         fn = csv.DictReader(open(args.metadata))
+        i = 1
         for row in fn:
             pano_id = row['pano_id']
+            if pano_id in os.listdir(os.path.split(args.metadata)[0]):
+                print(f"{pano_id} found")
+                i = i + 1
+                continue
             meta[pano_id] = get_panorama_meta(pano_id=pano_id,
                                               api_key=args.api_key)
-            print(f"downloading {pano_id}")
+            print(f"retrieving metadata {pano_id} ({i})")
+            i = i + 1
         download_images(meta,
                         os.path.dirname(args.metadata) + '/',
                         args.quality)
@@ -117,7 +126,7 @@ if __name__ == "__main__":
         if os.path.isdir(path) is False:
             os.mkdir(path)
 
-        print(args.r)
+        print(f"Searching inside {args.r}")
         meta = get_panoramas_info(args.r, args.n, args.api_key, args.year)
         save_metadata(path + "metadata", meta)
         download_images(meta, path, args.quality)
