@@ -18,7 +18,7 @@ colors = [(0,   0,     0),
 imgs = []
 if os.path.isdir(sys.argv[1]):
     for fp in os.listdir(sys.argv[1]):
-        if fp.endswith('_masks.png'):
+        if fp.endswith(".npy"):
             imgs.append(os.path.join(sys.argv[1], fp))
 elif os.path.isfile(sys.argv[1]):
     imgs.append(sys.argv[1])
@@ -26,12 +26,12 @@ elif os.path.isfile(sys.argv[1]):
 
 for fp in imgs:
     print(f"Processing: {fp}")
-    img = cv2.imread(fp, cv2.IMREAD_UNCHANGED)
-    img2 = np.zeros_like(img, dtype=np.uint8)
+    img = np.load(fp)
+    img2 = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
     for i in range(0, img.shape[0]):
         for j in range(0, img.shape[1]):
+            # print(img[i][j][0])
             img2[i][j] = colors[img[i][j][0]]
 
-    fn, ext = os.path.splitext(fp.split('/')[-1])
-    cv2.imwrite(os.path.join(os.path.dirname(fp), fn) + "_visualization" + ext,
-                img2)
+    fn, _ = os.path.splitext(os.path.basename(fp))
+    cv2.imwrite(os.path.join(os.path.dirname(fp), fn) + ".png", img2)
