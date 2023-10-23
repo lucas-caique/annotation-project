@@ -1,13 +1,19 @@
 # Image Viewer
 
-Ferramenta para visualizar e "anotar" imagens.
+Ferramenta para visualizar e "marcar" imagens.
 
-Essa feramenta escreve na tela informações no formato ```json``` para alimentar ```FastSAM``` e segmentar imagens.
+Essa feramenta escreve na tela informações no formato ```json``` para alimentar
+```FastSAM``` e segmentar imagens.
 
 ## Uso:
 
 ```
-python3 imgvw.py [directory]
+usage: Annotate Images [-h] [-p P | -l L]
+
+options:
+  -h, --help  show this help message and exit
+  -p P        path to images
+  -l L        load annotations
 ```
 
 - ```left-double-click``` desenha ponto
