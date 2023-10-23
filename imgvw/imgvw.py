@@ -58,7 +58,9 @@ class WorkingImages:
         dict = {}
         for i in self.list_imgs:
             if len(i.class_points):
-                dict[i.name] = i.class_points
+                for clss_pts in i.class_points:
+                    if len(i.class_points[clss_pts]):
+                        dict[i.name] = i.class_points
         return dict
 
 
@@ -76,40 +78,44 @@ def click_event(event, x, y, flags, imgs):
         cur_image.class_points.setdefault(cur_antt_class, []).append((x, y))
 
 
-if __name__ == "__main__":
+def parser():
     parser = argparse.ArgumentParser("Annotate Images")
+    group = parser.add_mutually_exclusive_group()
 
-    parser.add_argument("-p", help="path to images", type=str)
-    parser.add_argument("-l", help="load annotations", type=str)
-    args = parser.parse_args()
+    group.add_argument("-p", help="path to images", type=str)
+    group.add_argument("-l", help="load annotations", type=str)
+    return parser.parse_args()
 
+
+def load_directory(dir, images):
+    for i in os.listdir(dir):
+        if i.endswith('.jpg') or i.endswith('.png'):
+            images.append(os.path.join(dir, i))
+
+
+def load_ann(annotations, images):
+    for i in images.list_imgs:
+        if i.name in annotations:
+            for clss in annotations[i.name]:
+                for pts in annotations[i.name][clss]:
+                    i.undo_stack.append((i.image.copy(), int(clss)))
+                    draw_circle(i, pts[0], pts[1], int(clss))
+                    i.class_points.setdefault(int(clss), []).append(pts)
+
+
+def main(args):
     images = WorkingImages()
 
-    if args.l is None and os.path.isdir(args.p):
-        for i in os.listdir(args.p):
-            if i.endswith('.jpg') or i.endswith('.png'):
-                images.append(os.path.join(args.p, i))
+    if args.p is not None:
+        if os.path.isdir(args.p):
+            load_directory(args.p, images)
+        elif args.p.endswith('.jpg') or args.p.endswith('.png'):
+            images.append(args.p)
 
     elif args.l is not None:
-        annotations = json.load(open(args.l))
-
-        path = args.l
-        if args.p is not None:
-            path = args.p
-
-        for imgs in annotations:
-            print(os.path.join(path, imgs))
-            images.append(os.path.join(path, imgs))
-            images.next()
-            for clss in annotations[imgs]:
-                for pts in annotations[imgs][clss]:
-                    cur_image = images.cur_image()
-                    cur_antt_class = cur_image.cur_antt_class
-                    draw_circle(cur_image, pts[0], pts[1], int(clss))
-                    cur_image.class_points.setdefault(cur_antt_class, []).append(pts)
-
-    elif args.p.endswith('.jpg') or args.p.endswith('.png'):
-        images.append(args.p)
+        annotations = json.load(open(os.path.join(args.l, "ann")))
+        load_directory(args.l, images)
+        load_ann(annotations, images)
 
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Image', click_event, images)
@@ -134,3 +140,7 @@ if __name__ == "__main__":
 
     print(json.dumps(images.annotations()))
     cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main(parser())
