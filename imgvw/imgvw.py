@@ -119,6 +119,7 @@ def main(args):
 
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Image', click_event, images)
+    print(str(images.index) + ": " + images.cur_image().name)
 
     while True:
         cur_image = images.cur_image()
@@ -133,8 +134,10 @@ def main(args):
                 cur_image.class_points[old_antt_clss].pop()
         elif key == ord('n'):
             images.next()
+            print(str(images.index) + ": " +  cur_image.name)
         elif key == ord('p'):
             images.prev()
+            print(str(images.index)  + ": " +  cur_image.name)
         elif ord('1') <= key and key <= ord('9'):
             cur_image.cur_antt_class = key - 49
 
