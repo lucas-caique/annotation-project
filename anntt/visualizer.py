@@ -34,4 +34,4 @@ for fp in imgs:
             img2[i][j] = colors[img[i][j][0]]
 
     fn, _ = os.path.splitext(os.path.basename(fp))
-    cv2.imwrite(os.path.join(os.path.dirname(fp), fn) + ".png", img2)
+    cv2.imwrite(os.path.join(os.path.dirname(fp), fn + "_visualizer") + ".png", img2)
