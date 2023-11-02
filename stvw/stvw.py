@@ -62,10 +62,10 @@ def save_metadata(fname, meta):
 def download_images(meta, path, quality):
     print("\nDownloading to: " + path)
     for id in meta:
-        if os.path.isfile(path+id+".png"):
-            print(id+".png ja existe")
+        if os.path.isfile(path+id+".jpg"):
+            print(id+".jpg ja existe")
             continue
-        print("downloading: " + id + ".png")
+        print("downloading: " + id + ".jpg")
         image = get_panorama(id, quality)
         # o motivo dessas operações: https://medium.com/@nocomputer/creating-point-clouds-with-google-street-view-185faad9d4ee
         actual_w = 2**quality * 416 
@@ -73,7 +73,7 @@ def download_images(meta, path, quality):
 
         image = image.crop((0, 0, actual_w, actual_h)).resize((512 * 2**quality,
                                                                512 * 2**(quality - 1)))
-        image.save(path + id + ".png", "png")
+        image.save(os.path.join(path, id + ".jpg"), "jpeg")
 
 
 if __name__ == "__main__":
@@ -85,7 +85,7 @@ if __name__ == "__main__":
                         # Região Metropolitana de Porto Alegre
                         default=[-30.001798, -51.207466,  # top-left corner
                                  -30.088726, -51.184806]) # bottom right
-    parser.add_argument("-d", metavar="DIRECTORY",
+    parser.add_argument("-d", metavar="Directory",
                         help="directory to save images",
                         default=".")
     parser.add_argument("-n",
@@ -100,27 +100,35 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--metadata",
                         help="download from metadata file",
                         type=str)
+    parser.add_argument("-p", "--panorama",
+                        help="downloads an image based on an panorama_id")
 
     args = parser.parse_args()
 
     if args.metadata is not None:
-        meta = {}
         ids = []
         fn = csv.DictReader(open(args.metadata))
         i = 1
         for row in fn:
+            meta = {}
             pano_id = row['pano_id']
-            if pano_id in os.listdir(os.path.split(args.metadata)[0]):
+            if pano_id + ".jpg" in os.listdir(os.path.split(args.metadata)[0]):
                 print(f"{pano_id} found")
                 i = i + 1
                 continue
             meta[pano_id] = get_panorama_meta(pano_id=pano_id,
                                               api_key=args.api_key)
             print(f"retrieving metadata {pano_id} ({i})")
+            download_images(meta,
+                            os.path.dirname(args.metadata),
+                            args.quality)
             i = i + 1
-        download_images(meta,
-                        os.path.dirname(args.metadata) + '/',
-                        args.quality)
+    elif args.panorama is not None:
+        pano_id = args.panorama
+        meta = {}
+        meta[pano_id] = get_panorama_meta(pano_id=pano_id,
+                                          api_key=args.api_key)
+        download_images(meta, args.d, args.quality)
     else:
         path = os.path.join(args.d, "")
         if os.path.isdir(path) is False:
