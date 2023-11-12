@@ -90,15 +90,15 @@ if __name__ == "__main__":
                 print(f"{pts}: {clss}")
                 ann = prompt_process.point_prompt(points=[pts],
                                                   pointlabel=[1])
+                if args.show_masks:
+                    plt.imshow(ann[0])
+                    plt.show()
                 largestCC = getLargestCC(ann[0])
                 if largestCC is not None:
                     chn1 = largestCC.astype(np.uint8) * (int(clss) + 1)
                     chn2 = largestCC.astype(np.uint8) * count
                     masks.append(np.stack((chn1, chn2), axis=-1))
                     count += 1
-                    if args.show_masks:
-                        plt.imshow(largestCC)
-                        plt.show()
             print('')
 
         n, e = os.path.splitext(fn)
