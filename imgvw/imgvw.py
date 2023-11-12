@@ -84,6 +84,10 @@ def parser():
 
     group.add_argument("-p", help="path to images", type=str)
     group.add_argument("-l", help="load annotations", type=str)
+    parser.add_argument("--show_name",
+                       help="show image names",
+                       action="store_true",
+                       default=False)
     return parser.parse_args()
 
 
@@ -119,7 +123,9 @@ def main(args):
 
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Image', click_event, images)
-    print(str(images.index) + ": " + images.cur_image().name)
+
+    if args.show_name:
+        print(str(images.index) + ": " + images.cur_image().name)
 
     while True:
         cur_image = images.cur_image()
