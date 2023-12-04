@@ -2,7 +2,7 @@ import json
 import argparse
 import os.path
 import cv2
-
+import numpy as np
 
 # color palette from: https://colorswall.com/palette/171300
 colors = [(47,  52,  227),
@@ -69,13 +69,27 @@ def draw_circle(img, x, y, clss):
     cv2.circle(img.image, (x, y), radius, colors[clss], -1)
 
 
+def event_handling(x, y, flags, imgs):
+    cur_image = imgs.cur_image()
+    cur_antt_class = cur_image.cur_antt_class
+    cur_image.undo_stack.append((cur_image.image.copy(),
+                                 cur_antt_class))
+    draw_circle(cur_image, x, y, cur_antt_class)
+    class_points = cur_image.class_points.setdefault(cur_antt_class, [])
+    if flags & cv2.EVENT_FLAG_SHIFTKEY:
+        if len(class_points) == 0:
+            class_points.append([x, y])
+        elif len(class_points) == 1:
+            class_points[-1] = [class_points[-1], [x, y]]
+        else:
+            class_points[-1].append([x, y])
+    else:
+        class_points.append([x, y])
+
+
 def click_event(event, x, y, flags, imgs):
     if event == cv2.EVENT_LBUTTONDBLCLK:
-        cur_image = imgs.cur_image()
-        cur_antt_class = cur_image.cur_antt_class
-        cur_image.undo_stack.append((cur_image.image.copy(), cur_antt_class))
-        draw_circle(cur_image, x, y, cur_antt_class)
-        cur_image.class_points.setdefault(cur_antt_class, []).append((x, y))
+        event_handling(x, y, flags, imgs)
 
 
 def parser():
@@ -85,9 +99,9 @@ def parser():
     group.add_argument("-p", help="path to images", type=str)
     group.add_argument("-l", help="load annotations", type=str)
     parser.add_argument("--show_name",
-                       help="show image names",
-                       action="store_true",
-                       default=False)
+                        help="show image names",
+                        action="store_true",
+                        default=False)
     return parser.parse_args()
 
 
@@ -140,10 +154,8 @@ def main(args):
                 cur_image.class_points[old_antt_clss].pop()
         elif key == ord('n'):
             images.next()
-            print(str(images.index) + ": " +  cur_image.name)
         elif key == ord('p'):
             images.prev()
-            print(str(images.index)  + ": " +  cur_image.name)
         elif ord('1') <= key and key <= ord('9'):
             cur_image.cur_antt_class = key - 49
 
