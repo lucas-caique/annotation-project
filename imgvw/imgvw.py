@@ -2,7 +2,6 @@ import json
 import argparse
 import os.path
 import cv2
-import numpy as np
 
 # color palette from: https://colorswall.com/palette/171300
 colors = [(47,  52,  227),
@@ -96,7 +95,7 @@ def parser():
     parser = argparse.ArgumentParser("Annotate Images")
     group = parser.add_mutually_exclusive_group()
 
-    group.add_argument("-p", help="path to images", type=str)
+    group.add_argument("-i", help="input images", type=str)
     group.add_argument("-l", help="load annotations", type=str)
     parser.add_argument("--show_name",
                         help="show image names",
@@ -124,11 +123,11 @@ def load_ann(annotations, images):
 def main(args):
     images = WorkingImages()
 
-    if args.p is not None:
-        if os.path.isdir(args.p):
-            load_directory(args.p, images)
-        elif args.p.endswith('.jpg') or args.p.endswith('.png'):
-            images.append(args.p)
+    if args.i is not None:
+        if os.path.isdir(args.i):
+            load_directory(args.i, images)
+        elif args.i.endswith('.jpg') or args.p.endswith('.png'):
+            images.append(args.i)
 
     elif args.l is not None:
         annotations = json.load(open(os.path.join(args.l, "ann")))
