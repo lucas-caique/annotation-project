@@ -1,5 +1,4 @@
 from fastsam import FastSAM, FastSAMPrompt
-import cv2
 import os.path
 import argparse
 import json
@@ -86,20 +85,28 @@ if __name__ == "__main__":
         for clss in annotations[fn]:
             count = 1
             for pts in annotations[fn][clss]:
-                p.append(pts)
                 print(f"{pts}: {clss}")
-                ann = prompt_process.point_prompt(points=[pts],
-                                                  pointlabel=[1])
+                l = len(pts)
+                if isinstance(pts[0], int):
+                    ann = prompt_process.point_prompt(points=[pts],
+                                                      pointlabel=[1])
+                    largestCC = getLargestCC(ann[0])
+                    p.append(pts)
+                else:
+                    ann = prompt_process.point_prompt(points=pts,
+                                                      pointlabel=[1]*l)
+                    largestCC = ann[0]
+                    for i in pts:
+                        p.append(i)
+
                 if args.show_masks:
                     plt.imshow(ann[0])
                     plt.show()
-                largestCC = getLargestCC(ann[0])
                 if largestCC is not None:
                     chn1 = largestCC.astype(np.uint8) * (int(clss) + 1)
                     chn2 = largestCC.astype(np.uint8) * count
                     masks.append(np.stack((chn1, chn2), axis=-1))
                     count += 1
-            print('')
 
         n, e = os.path.splitext(fn)
         output_path = os.path.join(args.output, n)
@@ -110,8 +117,8 @@ if __name__ == "__main__":
                 for j in range(0, out.shape[1]):
                     for z in range(0, len(masks)):
                         if masks[z][i][j][0] != 0:
-                            out[i][j] = masks[z][i][j]
-                            break
+                           out[i][j] = masks[z][i][j]
+                           break
 
                 with open(output_path + '.npy', 'wb') as f:
                     np.save(f, out)
