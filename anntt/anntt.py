@@ -1,10 +1,55 @@
 from fastsam import FastSAM, FastSAMPrompt
 import os.path
+import os
 import argparse
 import json
 from matplotlib import pyplot as plt
 import numpy as np
+import cv2
 from skimage.measure import label
+
+
+def conversor(imagem, dir):
+    # Tradutor para remover símbolos desnecessários
+    remover = str.maketrans('', '', '[],')
+
+    normalizador = np.array([imagem.shape[1], imagem.shape[0]])
+    classe_max = np.max(imagem[:, :, 0])
+    num_max = np.max(imagem[:, :, 1])
+    print('\nCriando anotação para YOLO\n' +
+          f'TamanhTamanho da imagem: {normalizador}\n' +
+          f'Classe máxima para detecção: {classe_max}\n' +
+          f'Número máximo de detecção: {num_max}\n')
+
+    f = os.path.join(dir, 'yolo.txt')
+
+    if os.path.isfile(f) is True:
+        os.remove(f)
+
+    with open(f, 'a') as marcadores:
+        for classe in range(1, classe_max+1):
+            for numero in range(1, num_max+1):
+
+                limite = np.array([classe, numero])
+                objeto = cv2.inRange(imagem, limite, limite)
+
+                # Produzir contorno do objeto
+                contours, hierarchy = cv2.findContours(objeto,
+                                                       cv2.RETR_LIST,
+                                                       cv2.CHAIN_APPROX_SIMPLE)
+
+                if len(contours) == 0:
+                    continue
+
+                escr_coords = f'{classe} '
+                for coords in contours:
+                    # Normalização das coordenadas
+                    norm_contour = coords/normalizador
+                    # Transformar lista de coordenada em string e remover símbolos indesejados
+                    coordenadas = str(norm_contour.tolist()).translate(remover) + ' '
+                    escr_coords += coordenadas  # Adicionar lista à linha
+                escr_coords += '\n'
+                marcadores.write(escr_coords)  # Escrever no arquivo
 
 
 def getLargestCC(segmentation):
@@ -45,6 +90,10 @@ if __name__ == "__main__":
     parser.add_argument("--overlay",
                         action="store_true",
                         help="save overlay",
+                        default=False)
+    parser.add_argument("--yolo",
+                        action="store_true",
+                        help="create file with YOLO notation",
                         default=False)
     args = parser.parse_args()
 
@@ -102,6 +151,7 @@ if __name__ == "__main__":
                 if args.show_masks:
                     plt.imshow(ann[0])
                     plt.show()
+
                 if largestCC is not None:
                     chn1 = largestCC.astype(np.uint8) * (int(clss) + 1)
                     chn2 = largestCC.astype(np.uint8) * count
@@ -117,11 +167,14 @@ if __name__ == "__main__":
                 for j in range(0, out.shape[1]):
                     for z in range(0, len(masks)):
                         if masks[z][i][j][0] != 0:
-                           out[i][j] = masks[z][i][j]
-                           break
+                            out[i][j] = masks[z][i][j]
+                            break
 
-                with open(output_path + '.npy', 'wb') as f:
-                    np.save(f, out)
+            with open(output_path + '.npy', 'wb') as f:
+                np.save(f, out)
+
+            if args.yolo is True:
+                conversor(out, args.output)
 
             if args.overlay is True:
                 ann = prompt_process.point_prompt(points=p,
