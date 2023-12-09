@@ -120,16 +120,14 @@ def load_directory(dir, images):
 
 
 def load_ann(images, annotations):
-    index = 0
     for i in images.list_imgs:
         if i.name in annotations:
             for clss in annotations[i.name]:
-                index += 1
                 for point_list in annotations[i.name][clss]:
                     i.class_points.setdefault(int(clss), []).append(point_list)
+                    images.index = images.list_imgs.index(i)
                     for pts in point_list:
                         i.undo_stack.append((pts[0], pts[1], int(clss)))
-    images.index = index
 
 
 def main(args):
