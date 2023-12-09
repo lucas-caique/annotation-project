@@ -20,10 +20,13 @@ class Image:
     def __init__(self, path):
         self.name = os.path.basename(path)
         self.path = path
-        self.image = cv2.imread(self.path, cv2.IMREAD_UNCHANGED)
+        self.image = None
         self.undo_stack = []
         self.class_points = {}
         self.cur_antt_class = 0
+
+    def load(self):
+        self.image = cv2.imread(self.path, cv2.IMREAD_UNCHANGED)
 
 
 class WorkingImages:
@@ -132,7 +135,7 @@ def main(args):
     if args.i is not None:
         if os.path.isdir(args.i):
             load_directory(args.i, images)
-        elif args.i.endswith('.jpg') or args.p.endswith('.png'):
+        elif args.i.endswith('.jpg') or args.i.endswith('.png'):
             images.append(args.i)
 
     elif args.l is not None:
@@ -148,6 +151,10 @@ def main(args):
 
     while True:
         cur_image = images.cur_image()
+
+        if cur_image.image is None:
+            cur_image.load()
+
         img = np.copy(cur_image.image)
         img = draw_stack(img, cur_image.undo_stack)
         cv2.imshow('Image', img)
