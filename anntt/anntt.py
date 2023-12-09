@@ -136,18 +136,11 @@ if __name__ == "__main__":
             count = 1
             for pts in annotations[fn][clss]:
                 print(f"{pts}: {clss}")
-                l = len(pts)
-                if isinstance(pts[0], int):
-                    ann = prompt_process.point_prompt(points=[pts],
-                                                      pointlabel=[1])
-                    largestCC = getLargestCC(ann[0])
-                    p.append(pts)
-                else:
-                    ann = prompt_process.point_prompt(points=pts,
-                                                      pointlabel=[1]*l)
-                    largestCC = ann[0]
-                    for i in pts:
-                        p.append(i)
+                ann = prompt_process.point_prompt(points=pts,
+                                                  pointlabel=[1]*len(pts))
+                largestCC = ann[0]
+                for i in pts:
+                    p.append(i)
 
                 if args.show_masks:
                     plt.imshow(ann[0])
@@ -182,6 +175,6 @@ if __name__ == "__main__":
                                                   pointlabel=[1]*len(p))
                 prompt_process.plot(annotations=ann,
                                     withContours=False,
-                                    mask_random_color=False,
+                                    mask_random_color=True,
                                     better_quality=True,
                                     output_path=output_path + '.png')
