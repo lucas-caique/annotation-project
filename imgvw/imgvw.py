@@ -2,6 +2,7 @@ import json
 import argparse
 import os.path
 import cv2
+import numpy as np
 
 # color palette from: https://colorswall.com/palette/171300
 colors = [(47,  52,  227),
@@ -64,26 +65,31 @@ class WorkingImages:
 
 
 def draw_circle(img, x, y, clss):
-    radius = int(5 * (img.image.shape[1] / 1024))
-    cv2.circle(img.image, (x, y), radius, colors[clss], -1)
+    radius = int(5 * (img.shape[1] / 1024))
+    img = cv2.circle(img, (x, y), radius, colors[clss], -1)
+    return img
+
+
+def draw_stack(img, stack):
+    for p in stack:
+        x, y, clss = p[0:3]
+        img = draw_circle(img, x, y, clss)
+    return img
 
 
 def event_handling(x, y, flags, imgs):
     cur_image = imgs.cur_image()
     cur_antt_class = cur_image.cur_antt_class
-    cur_image.undo_stack.append((cur_image.image.copy(),
-                                 cur_antt_class))
-    draw_circle(cur_image, x, y, cur_antt_class)
+    cur_image.undo_stack.append((x, y, cur_antt_class))
+    # draw_circle(cur_image.image, x, y, cur_antt_class)
     class_points = cur_image.class_points.setdefault(cur_antt_class, [])
     if flags & cv2.EVENT_FLAG_SHIFTKEY:
         if len(class_points) == 0:
-            class_points.append([x, y])
-        elif len(class_points) == 1:
-            class_points[-1] = [class_points[-1], [x, y]]
+            class_points.append([[x, y]])
         else:
             class_points[-1].append([x, y])
     else:
-        class_points.append([x, y])
+        class_points.append([[x, y]])
 
 
 def click_event(event, x, y, flags, imgs):
@@ -110,13 +116,13 @@ def load_directory(dir, images):
             images.append(os.path.join(dir, i))
 
 
-def load_ann(annotations, images):
+def load_ann(images, annotations):
     for i in images.list_imgs:
         if i.name in annotations:
             for clss in annotations[i.name]:
                 for pts in annotations[i.name][clss]:
                     i.undo_stack.append((i.image.copy(), int(clss)))
-                    draw_circle(i, pts[0], pts[1], int(clss))
+                    draw_circle(i.image, pts[0], pts[1], int(clss))
                     i.class_points.setdefault(int(clss), []).append(pts)
 
 
@@ -134,23 +140,26 @@ def main(args):
         load_directory(args.l, images)
         load_ann(annotations, images)
 
-    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
-    cv2.setMouseCallback('Image', click_event, images)
-
     if args.show_name:
         print(str(images.index) + ": " + images.cur_image().name)
 
+    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+    cv2.setMouseCallback('Image', click_event, images)
+
     while True:
         cur_image = images.cur_image()
-        cv2.imshow('Image', cur_image.image)
+        img = np.copy(cur_image.image)
+        img = draw_stack(img, cur_image.undo_stack)
+        cv2.imshow('Image', img)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
         elif key == ord('u'):
-            if cur_image.undo_stack:
-                cur_image.image, old_antt_clss = cur_image.undo_stack.pop()
-                cur_image.class_points[old_antt_clss].pop()
+            if len(cur_image.undo_stack) > 0:
+                p = cur_image.undo_stack.pop()
+                cur_image.class_points[p[2]].pop()
+
         elif key == ord('n'):
             images.next()
         elif key == ord('p'):
