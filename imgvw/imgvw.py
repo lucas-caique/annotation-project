@@ -68,7 +68,7 @@ class WorkingImages:
 
 
 def draw_circle(img, x, y, clss):
-    radius = int(5 * (img.shape[1] / 1024))
+    radius = int(5 * (img.shape[0] / 1024))
     img = cv2.circle(img, (x, y), radius, colors[clss], -1)
     return img
 
@@ -93,6 +93,7 @@ def event_handling(x, y, flags, imgs):
             class_points[-1].append([x, y])
     else:
         class_points.append([[x, y]])
+    print(cur_image.class_points)
 
 
 def click_event(event, x, y, flags, imgs):
@@ -168,7 +169,9 @@ def main(args):
         elif key == ord('u'):
             if len(cur_image.undo_stack) > 0:
                 p = cur_image.undo_stack.pop()
-                cur_image.class_points[p[2]].pop()
+                cur_image.class_points[p[2]][-1].pop()
+                if len(cur_image.class_points[p[2]][-1]) == 0:
+                    del cur_image.class_points[p[2]][-1]
 
         elif key == ord('n'):
             images.next()
