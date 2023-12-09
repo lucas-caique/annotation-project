@@ -120,13 +120,16 @@ def load_directory(dir, images):
 
 
 def load_ann(images, annotations):
+    index = 0
     for i in images.list_imgs:
         if i.name in annotations:
             for clss in annotations[i.name]:
-                for pts in annotations[i.name][clss]:
-                    i.undo_stack.append((i.image.copy(), int(clss)))
-                    draw_circle(i.image, pts[0], pts[1], int(clss))
-                    i.class_points.setdefault(int(clss), []).append(pts)
+                index += 1
+                for point_list in annotations[i.name][clss]:
+                    i.class_points.setdefault(int(clss), []).append(point_list)
+                    for pts in point_list:
+                        i.undo_stack.append((pts[0], pts[1], int(clss)))
+    images.index = index
 
 
 def main(args):
@@ -139,9 +142,9 @@ def main(args):
             images.append(args.i)
 
     elif args.l is not None:
-        annotations = json.load(open(os.path.join(args.l, "ann")))
-        load_directory(args.l, images)
-        load_ann(annotations, images)
+        annotations = json.load(open(args.l))
+        load_directory(os.path.dirname(args.l), images)
+        load_ann(images, annotations)
 
     if args.show_name:
         print(str(images.index) + ": " + images.cur_image().name)
