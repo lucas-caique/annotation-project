@@ -9,6 +9,7 @@ import cv2
 from skimage.measure import label
 
 
+# Cortesia de LeumasPessoa
 def conversor(imagem, dir):
     # Tradutor para remover símbolos desnecessários
     remover = str.maketrans('', '', '[],')
