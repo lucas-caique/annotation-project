@@ -93,7 +93,6 @@ def event_handling(x, y, flags, imgs):
             class_points[-1].append([x, y])
     else:
         class_points.append([[x, y]])
-    print(cur_image.class_points)
 
 
 def click_event(event, x, y, flags, imgs):
