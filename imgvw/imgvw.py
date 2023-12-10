@@ -28,6 +28,9 @@ class Image:
     def load(self):
         self.image = cv2.imread(self.path, cv2.IMREAD_UNCHANGED)
 
+    def unload(self):
+        self.image = None
+
 
 class WorkingImages:
     def __init__(self):
@@ -45,6 +48,7 @@ class WorkingImages:
 
     def next(self):
         if self.size:
+            self.list_imgs[self.index].unload()
             if self.index < self.size - 1:
                 self.index += 1
             else:
@@ -52,6 +56,7 @@ class WorkingImages:
 
     def prev(self):
         if self.size:
+            self.list_imgs[self.index].unload()
             if self.index > 0:
                 self.index -= 1
             else:
@@ -106,10 +111,8 @@ def parser():
 
     group.add_argument("-i", help="input images", type=str)
     group.add_argument("-l", help="load annotations", type=str)
-    parser.add_argument("--show_name",
-                        help="show image names",
-                        action="store_true",
-                        default=False)
+    parser.add_argument("-f", help="annotation file", type=str,
+                        default="ann.txt")
     return parser.parse_args()
 
 
@@ -133,19 +136,19 @@ def load_ann(images, annotations):
 def main(args):
     images = WorkingImages()
 
+    dir = ""
     if args.i is not None:
+        dir = os.path.dirname(args.i)
         if os.path.isdir(args.i):
             load_directory(args.i, images)
         elif args.i.endswith('.jpg') or args.i.endswith('.png'):
             images.append(args.i)
 
     elif args.l is not None:
+        dir = os.path.dirname(args.l)
         annotations = json.load(open(args.l))
         load_directory(os.path.dirname(args.l), images)
         load_ann(images, annotations)
-
-    if args.show_name:
-        print(str(images.index) + ": " + images.cur_image().name)
 
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
     cv2.setMouseCallback('Image', click_event, images)
@@ -155,6 +158,7 @@ def main(args):
 
         if cur_image.image is None:
             cur_image.load()
+            print(f"{cur_image.name}: {images.index}/{len(images.list_imgs)}")
 
         img = np.copy(cur_image.image)
         img = draw_stack(img, cur_image.undo_stack)
@@ -177,7 +181,9 @@ def main(args):
         elif ord('1') <= key and key <= ord('9'):
             cur_image.cur_antt_class = key - 49
 
-    print(json.dumps(images.annotations()))
+    with open(os.path.join(dir, args.f), 'w') as f:
+        f.write(json.dumps(images.annotations()))
+
     cv2.destroyAllWindows()
 
 
