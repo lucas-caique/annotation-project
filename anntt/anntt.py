@@ -99,7 +99,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.output is None:
-        args.output = os.path.join(args.img_path, "output")
+        output = ""
+        if os.path.isdir(args.img_path):
+            output = args.img_path
+        else:
+            output = os.path.dirname(args.img_path)
+        args.output = os.path.join(output, "output")
         if os.path.isdir(args.output) is False:
             os.mkdir(args.output)
 
@@ -138,7 +143,11 @@ if __name__ == "__main__":
                 print(f"{pts}: {clss}")
                 ann = prompt_process.point_prompt(points=pts,
                                                   pointlabel=[1]*len(pts))
-                largestCC = ann[0]
+                if len(pts) == 1:
+                    largestCC = getLargestCC(ann[0])
+                else:
+                    largestCC = ann[0]
+
                 for i in pts:
                     p.append(i)
 
@@ -155,14 +164,21 @@ if __name__ == "__main__":
         n, e = os.path.splitext(fn)
         output_path = os.path.join(args.output, n)
 
+        print("Criando máscaras.")
         if len(masks):
             out = np.zeros(masks[0].shape, dtype=np.uint8)
-            for i in range(0, out.shape[0]):
-                for j in range(0, out.shape[1]):
-                    for z in range(0, len(masks)):
-                        if masks[z][i][j][0] != 0:
-                            out[i][j] = masks[z][i][j]
-                            break
+            for i in range(0, len(masks)):
+                ch0_nonzero = np.nonzero(masks[i][:, :, 0])
+                out[:, :, 0][ch0_nonzero] = masks[i][:, :, 0][ch0_nonzero]
+                out[:, :, 1][ch0_nonzero] = masks[i][:, :, 1][ch0_nonzero]
+
+
+            # for i in range(0, out.shape[0]):
+            #     for j in range(0, out.shape[1]):
+            #         for z in range(0, len(masks)):
+            #             if masks[z][i][j][0] != 0:
+            #                 out[i][j] = masks[z][i][j]
+            #                 break
 
             with open(output_path + '.npy', 'wb') as f:
                 np.save(f, out)
@@ -177,4 +193,4 @@ if __name__ == "__main__":
                                     withContours=False,
                                     mask_random_color=True,
                                     better_quality=True,
-                                    output_path=output_path + '.png')
+                                    output_path=output_path + '.jpg')
